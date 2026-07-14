@@ -701,7 +701,7 @@ const auth = getAuth(app);
   try {
     const result = await getRedirectResult(auth);
     if (result && result.user) {
-      window.location.href = 'index.html';
+      window.location.href = 'https://create.friendortrend.dedyn.io';
     }
   } catch (e) {
     // redirect was cancelled or failed — show error
@@ -775,8 +775,22 @@ window.togglePw = () => {
 };
 
 /* ── Error helpers ────────────────────────────────────── */
-const showErr = (msg) => {
-  const clean = msg
+const ERR_MAP = {
+  'auth/operation-not-allowed':    'Email & password sign-in is not enabled. Please contact the site admin or use Google.',
+  'auth/email-already-in-use':     'An account with this email already exists. Try signing in instead.',
+  'auth/invalid-email':            'Please enter a valid email address.',
+  'auth/weak-password':            'Password must be at least 8 characters.',
+  'auth/user-not-found':           'No account found with this email. Try creating one.',
+  'auth/wrong-password':           'Incorrect password. Please try again.',
+  'auth/invalid-credential':       'Incorrect email or password. Please try again.',
+  'auth/too-many-requests':        'Too many attempts. Please wait a moment and try again.',
+  'auth/network-request-failed':   'Network error. Please check your connection and try again.',
+  'auth/popup-closed-by-user':     'Sign-in was cancelled.',
+  'auth/cancelled-popup-request':  'Sign-in was cancelled.',
+};
+const showErr = (msg, code) => {
+  const mapped = code && ERR_MAP[code];
+  const clean  = mapped || msg
     .replace('Firebase: ', '')
     .replace(/ \(auth\/.*?\)\.?/g, '');
   document.getElementById('errText').textContent = clean;
@@ -817,18 +831,14 @@ window.handleSubmit = async () => {
       if (name) await updateProfile(cred.user, { displayName: name });
       await sendEmailVerification(cred.user);
       setDone();
-      setTimeout(() => {
-        document.getElementById('verifyEmail').textContent = email;
-        document.getElementById('formPanel').style.display   = 'none';
-        document.getElementById('verifyPanel').style.display = 'block';
-      }, 500);
+      setTimeout(() => { window.location.href = 'https://create.friendortrend.dedyn.io'; }, 600);
     } else {
       await signInWithEmailAndPassword(auth, email, pw);
       setDone();
-      setTimeout(() => { window.location.href = 'index.html'; }, 600);
+      setTimeout(() => { window.location.href = 'https://create.friendortrend.dedyn.io'; }, 600);
     }
   } catch (e) {
-    showErr(e.message || 'Something went wrong. Please try again.');
+    showErr(e.message || 'Something went wrong. Please try again.', e.code);
     setLoading(false);
   }
 };
